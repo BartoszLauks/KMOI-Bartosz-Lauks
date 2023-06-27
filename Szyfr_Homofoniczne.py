@@ -1,59 +1,66 @@
 import random
 
 
-def generuj_klucz(alfabet):
-    klucz = {}
-    for litera, zaszyfrowane_litery in alfabet.items():
-        if litera not in klucz:
-            klucz[litera] = []
-        klucz[litera].extend(zaszyfrowane_litery)
-    return klucz
+class HomophonicCipher:
+    def __init__(self):
+        self.alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        self.key = {}
 
+        self.generate_key()
 
-def szyfruj_homofonicznie(tekst_jawny, klucz):
-    szyfrogram = ""
-    for litera in tekst_jawny:
-        if litera in klucz:
-            zaszyfrowane_litery = klucz[litera]
-            zaszyfrowana_litera = random.choice(zaszyfrowane_litery)
-            szyfrogram += zaszyfrowana_litera
-        else:
-            szyfrogram += litera
-    return szyfrogram
+    def generate_key(self):
+        candidates = [str(i) for i in range(10)]
 
+        for letter in self.alphabet:
+            count = random.choice([1, 2])
 
-def deszyfruj_homofonicznie(szyfrogram, klucz):
-    deszyfrowany_tekst = ""
-    for litera in szyfrogram:
-        for klucz_litera, klucz_wartosci in klucz.items():
-            if litera in klucz_wartosci:
-                deszyfrowany_tekst += klucz_litera
-                break
-        else:
-            deszyfrowany_tekst += litera
-    return deszyfrowany_tekst
+            count = min(count, len(candidates))
 
+            if count > 0:
+                code = random.sample(candidates, count)
 
-alfabet = {
-    'A': ['%', '$'],
-    'B': ['#'],
-    'C': ['@'],
-    'D': ['&'],
-    'E': ['^'],
-    'F': ['*'],
-    'G': ['!'],
-    'H': ['~'],
-    'I': [';', ':'],
-    'J': ['<', '>'],
-    'K': ['?', '/']
-}
+                for digit in code:
+                    candidates.remove(digit)
+
+                self.key[letter] = "".join(code)
+
+        print("Mapa szyfrująca:")
+        for letter, code in self.key.items():
+            print(letter, "->", code)
+
+    def encrypt(self, message):
+        encrypted_message = ""
+
+        for char in message.upper():
+            if char in self.alphabet:
+                code = self.key.get(char)
+                if code:
+                    encrypted_message += code + " "
+                else:
+                    encrypted_message += char + " "
+
+        return encrypted_message.rstrip()
+
+    def decrypt(self, encrypted_message):
+        decrypted_message = ""
+
+        codes = encrypted_message.split()
+
+        for code in codes:
+            for letter, c in self.key.items():
+                if code == c:
+                    decrypted_message += letter
+
+        return decrypted_message
 
 if __name__ == '__main__':
-    klucz = generuj_klucz(alfabet)
 
-    tekst_jawny = "Test szyfru"
-    szyfrogram = szyfruj_homofonicznie(tekst_jawny, klucz)
-    print("Szyfrogram:", szyfrogram)
+    cipher = HomophonicCipher()
 
-    deszyfrowany_tekst = deszyfruj_homofonicznie(szyfrogram, klucz)
-    print("Deszyfrowany tekst:", deszyfrowany_tekst)
+    message = "HELLO WORLD"
+    encrypted = cipher.encrypt(message)
+    decrypted = cipher.decrypt(encrypted)
+
+    print("Wiadomość: ", message)
+    print("Zaszyfrowana wiadomość: ", encrypted)
+    print("Odszyfrowana wiadomość: ", message )

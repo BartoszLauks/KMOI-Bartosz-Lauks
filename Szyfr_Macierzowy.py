@@ -1,52 +1,37 @@
-import numpy as np
+def szyfr_maciezowy(slowo_klucz, tekst_jawny):
+    slowo_klucz = slowo_klucz.lower().replace(" ", "")
+    tekst_jawny = tekst_jawny.lower().replace(" ", "")
 
+    klucz_dl = len(slowo_klucz)
+    klucz_macierz = [[0] * klucz_dl for _ in range(klucz_dl)]
+    poz = 0
 
-def matrix_cipher_encrypt(message, matrix):
-    message = message.upper().replace(" ", "")
-    size = len(matrix)
-    remainder = len(message) % size
+    for i in range(klucz_dl):
+        for j in range(klucz_dl):
+            klucz_macierz[i][j] = ord(slowo_klucz[poz]) - 97
+            poz = (poz + 1) % klucz_dl
 
-    if remainder != 0:
-        message += "X" * (size - remainder)
+    tekst_dl = len(tekst_jawny)
+    tekst_macierz = [[0] * klucz_dl for _ in range((tekst_dl + klucz_dl - 1) // klucz_dl)]
 
-    encrypted_message = ""
-    for i in range(0, len(message), size):
-        block = np.array([ord(char) - ord('A') for char in message[i:i + size]])
-        encrypted_block = np.matmul(matrix, block) % 26
-        encrypted_message += ''.join([chr(char + ord('A')) for char in encrypted_block])
+    for i in range(tekst_dl):
+        tekst_macierz[i // klucz_dl][i % klucz_dl] = ord(tekst_jawny[i]) - 97
 
-    return encrypted_message
+    tekst_zaszyfrowany = ""
 
+    for i in range((tekst_dl + klucz_dl - 1) // klucz_dl):
+        for j in range(klucz_dl):
+            suma = 0
+            for k in range(klucz_dl):
+                suma += klucz_macierz[j][k] * tekst_macierz[i][k]
+            tekst_zaszyfrowany += chr((suma % 26) + 97)
 
-def matrix_cipher_decrypt(ciphertext, matrix):
-    size = len(matrix)
-    inverse_matrix = np.linalg.inv(matrix)
-    determinant = round(np.linalg.det(matrix))
-    multiplicative_inverse = None
-
-    for i in range(26):
-        if (determinant * i) % 26 == 1:
-            multiplicative_inverse = i
-            break
-
-    if multiplicative_inverse is None:
-        raise ValueError("Matrix is not invertible")
-
-    decrypted_message = ""
-    for i in range(0, len(ciphertext), size):
-        block = np.array([ord(char) - ord('A') for char in ciphertext[i:i + size]])
-        decrypted_block = np.matmul(inverse_matrix, block * multiplicative_inverse) % 26
-        decrypted_message += ''.join([chr(char + ord('A')) for char in decrypted_block])
-
-    return decrypted_message
-
+    return tekst_zaszyfrowany
 
 if __name__ == '__main__':
-    plaintext = "HELLO WORLD"
-    encryption_matrix = np.array([[2, 3], [1, 4]])
 
-    encrypted = matrix_cipher_encrypt(plaintext, encryption_matrix)
-    print("Encrypted:", encrypted)
+    slowo_klucz = "KLUCZ"
+    tekst_jawny = "TO JEST TAJNY TEKST"
 
-    decrypted = matrix_cipher_decrypt(encrypted, encryption_matrix)
-    print("Decrypted:", decrypted)
+    zaszyfrowany_tekst = szyfr_maciezowy(slowo_klucz, tekst_jawny)
+    print("Zaszyfrowany tekst:", zaszyfrowany_tekst)
